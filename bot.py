@@ -17,27 +17,32 @@ print("🤖 EliTrem Bot está monitorando as SuperOdds...")
 
 @client.on(events.NewMessage(chats=origem_id))
 async def handler(event):
-    # Pega o texto da mensagem original
     texto_original = event.raw_text
+    # ESTA LINHA VAI MOSTRAR TUDO NO LOG DO GITHUB
+    print(f"📥 Mensagem recebida da origem: {texto_original[:50]}...") 
+
     if not texto_original:
         return
 
-    # Filtro de Segurança: Só processa se a mensagem parecer uma aposta/odd
-    termos_filtro = ['ODD', 'SUPER', 'BILHETE', 'TURBINADA', 'PROMO', 'CASH']
-    if any(termo in texto_original.upper() for termo in termos_filtro):
+    # Filtro mais sensível (aceita minúsculas e maiúsculas)
+    termos = ['ODD', 'SUPER', 'BILHETE', 'TURBINADA', 'BETANO', 'BET365', 'GREEN']
+    if any(termo in texto_original.upper() for termo in termos):
+        print("🎯 Filtro aprovado! Tentando enviar para o EliTrem Tips...")
         
-        # --- INÍCIO DA TRADUÇÃO ESTILO ELITREM ---
+        # --- PERSONALIZAÇÃO ---
+        novo_texto = texto_original.replace("💎 SUPER ODDS", "            ELITREM | SUPER ODD")
+        novo_texto = re.sub(r'https?://\S+', '', novo_texto)
+        assinatura = "\n\n🚀 **Siga o Trem do Green:** @EliTremTips"
+        texto_final = novo_texto.strip() + assinatura
         
-        # 1. Substitui os Títulos e Emojis de Identidade
-        novo_texto = texto_original.replace("💎 SUPER ODDS", "🚂💨 ELITREM | SUPER ODD")
-        novo_texto = novo_texto.replace("⚡️ SUPER ODDS", "🚂💨 ELITREM | SUPER ODD")
-        novo_texto = novo_texto.replace("💎", "✅").replace("⚡️", "🔥")
-        
-        # 2. Adapta Termos Técnicos
-        novo_texto = novo_texto.replace("Odd turbinada de", "Cotação subiu:")
-        novo_texto = novo_texto.replace("Bilhete disponível no link", "🔥 ENTRADA LIBERADA")
-        novo_texto = novo_texto.replace("BILHETE PRONTO", "COPIAR ENTRADA")
-        novo_texto = novo_texto.replace("Entrada de perfil", "Sugestão de")
+        try:
+            await client.send_message(destino_id, texto_final, file=event.media)
+            print("✅ SUCESSO: Mensagem enviada para o seu grupo!")
+        except Exception as e:
+            # SE DER ERRO DE PERMISSÃO OU ID, VAI APARECER AQUI:
+            print(f"❌ ERRO AO ENVIAR: {e}")
+    else:
+        print("⏩ Mensagem ignorada pelo filtro (não continha as palavras-chave).")
         
         # 3. LIMPEZA DE LINKS (Remove links de afiliados de terceiros)
         # Remove links que começam com http ou
