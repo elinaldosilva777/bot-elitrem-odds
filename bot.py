@@ -1,23 +1,43 @@
-from telethon import TelegramClient, events
 import os
+import re
+from telethon import TelegramClient, events
 
-# Pega as chaves de forma segura que vamos configurar no próximo passo
+# 1. Configurações via Secrets do GitHub
+# Certifique-se de que cadastrou API_ID, API_HASH, BOT_TOKEN, ID_ORIGEM e ID_DESTINO no GitHub
 api_id = int(os.environ.get('API_ID'))
 api_hash = os.environ.get('API_HASH')
 bot_token = os.environ.get('BOT_TOKEN')
-origem_id = -100XXXXXXXXXX # Vamos trocar pelo ID do canal que você quer copiar
-destino_id = -100YYYYYYYYYY # ID do seu grupo EliTrem Tips
+origem_id = int(os.environ.get('ID_ORIGEM'))
+destino_id = int(os.environ.get('ID_DESTINO'))
 
-# Usando Session em memória para não gerar arquivos no GitHub
+# 2. Inicialização do Cliente
 client = TelegramClient('sessao_elitrem', api_id, api_hash).start(bot_token=bot_token)
+
+print("🤖 EliTrem Bot está monitorando as SuperOdds...")
 
 @client.on(events.NewMessage(chats=origem_id))
 async def handler(event):
-    # Filtro para pegar apenas o que interessa
-    termos = ['SuperOdds', 'Odd', 'Promocional', 'Betano', 'Bet365']
-    if any(word.lower() in event.raw_text.lower() for word in termos):
-        await client.send_message(destino_id, event.message)
-        print("✅ Mensagem enviada!")
+    # Pega o texto da mensagem original
+    texto_original = event.raw_text
+    if not texto_original:
+        return
 
-print("🤖 EliTrem Bot está monitorando...")
-client.run_until_disconnected()
+    # Filtro de Segurança: Só processa se a mensagem parecer uma aposta/odd
+    termos_filtro = ['ODD', 'SUPER', 'BILHETE', 'TURBINADA', 'PROMO', 'CASH']
+    if any(termo in texto_original.upper() for termo in termos_filtro):
+        
+        # --- INÍCIO DA TRADUÇÃO ESTILO ELITREM ---
+        
+        # 1. Substitui os Títulos e Emojis de Identidade
+        novo_texto = texto_original.replace("💎 SUPER ODDS", "🚂💨 ELITREM | SUPER ODD")
+        novo_texto = novo_texto.replace("⚡️ SUPER ODDS", "🚂💨 ELITREM | SUPER ODD")
+        novo_texto = novo_texto.replace("💎", "✅").replace("⚡️", "🔥")
+        
+        # 2. Adapta Termos Técnicos
+        novo_texto = novo_texto.replace("Odd turbinada de", "Cotação subiu:")
+        novo_texto = novo_texto.replace("Bilhete disponível no link", "🔥 ENTRADA LIBERADA")
+        novo_texto = novo_texto.replace("BILHETE PRONTO", "COPIAR ENTRADA")
+        novo_texto = novo_texto.replace("Entrada de perfil", "Sugestão de")
+        
+        # 3. LIMPEZA DE LINKS (Remove links de afiliados de terceiros)
+        # Remove links que começam com http ou
