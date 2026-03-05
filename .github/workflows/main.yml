@@ -1,25 +1,30 @@
 name: Ligar Bot EliTrem
+
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 10 * * *'
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Python
+      - name: Baixar Codigo
+        uses: actions/checkout@v3
+
+      - name: Instalar Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-      - name: Instalar Dependencias
-        run: pip install telethon
+
+      - name: Instalar Bibliotecas
+        run: |
+          pip install telethon
+
       - name: Executar Bot
         env:
           API_ID: ${{ secrets.API_ID }}
           API_HASH: ${{ secrets.API_HASH }}
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          TELEGRAM_SESSION: ${{ secrets.TELEGRAM_SESSION }}
           ID_ORIGEM: ${{ secrets.ID_ORIGEM }}
           ID_DESTINO: ${{ secrets.ID_DESTINO }}
-        run: python bot.py
+        run: |
+          python -u bot.py
