@@ -11,7 +11,7 @@ destino_id = int(os.environ.get('ID_DESTINO'))
 
 # IMPORTANTE: O nome aqui deve ser EXATAMENTE o nome do arquivo que você subiu
 # Se o arquivo no GitHub se chama 'sessao_user', mude para 'sessao_user' aqui.
-client = TelegramClient('sessao_user.session', api_id, api_hash)
+client = TelegramClient('sessao_user', api_id, api_hash)
 
 async def main():
     print("🔄 Tentando conectar ao Telegram...")
