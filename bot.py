@@ -3,36 +3,45 @@ import re
 import asyncio
 from telethon import TelegramClient, events
 
-# Puxa as variáveis das Secrets
+# Puxa as Secrets configuradas no GitHub
 api_id = int(os.environ.get('API_ID'))
 api_hash = os.environ.get('API_HASH')
 origem_id = int(os.environ.get('ID_ORIGEM'))
 destino_id = int(os.environ.get('ID_DESTINO'))
 
-# IMPORTANTE: O nome aqui deve ser EXATAMENTE o nome do arquivo que você subiu
-# Se o arquivo no GitHub se chama 'sessao_user', mude para 'sessao_user' aqui.
-client = TelegramClient('sessao_user', api_id, api_hash)
+# NOME EXATO DO ARQUIVO QUE VOCÊ SUBIU
+nome_sessao = 'sessao_user.session' 
+
+client = TelegramClient(nome_sessao, api_id, api_hash)
 
 async def main():
-    print("🔄 Tentando conectar ao Telegram...")
+    print("🚀 EliTrem Tips: Iniciando conexão segura...")
+    
+    # Tenta conectar sem pedir dados novos ao servidor
     await client.connect()
     
+    # Verifica se a sua "chave" de sessão é válida
     if not await client.is_user_authorized():
-        print("❌ ERRO: O arquivo de sessão não foi reconhecido ou expirou.")
+        print("❌ ERRO: O arquivo de sessão não foi reconhecido.")
+        print("Dica: Tente gerar o arquivo novamente no seu PC se este erro persistir.")
         return
 
-    print("✅ EliTrem Conectado! Monitorando mensagens...")
+    print("✅ SUCESSO! O EliTrem está online e monitorando o grupo.")
 
     @client.on(events.NewMessage(chats=origem_id))
     async def handler(event):
         if event.raw_text and any(p in event.raw_text.upper() for p in ['ODD', 'SUPER', 'BILHETE']):
+            # Remove links para deixar as dicas limpas
             texto = re.sub(r'https?://\S+', '', event.raw_text)
             final = f"🚂💨 **ELITREM TIPS**\n\n{texto.strip()}\n\n🚀 @EliTremTips"
-            await client.send_message(destino_id, final, file=event.media)
-            print("🚀 Tip enviada para o grupo!")
+            
+            try:
+                await client.send_message(destino_id, final, file=event.media)
+                print("🎯 Dica encaminhada com sucesso!")
+            except Exception as e:
+                print(f"❌ Erro ao enviar: {e}")
 
     await client.run_until_disconnected()
 
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    asyncio.run(main())
